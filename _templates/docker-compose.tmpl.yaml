@@ -5,6 +5,8 @@ services:
     container_name: tt-rss
     hostname: tt-rss
     restart: always
+    labels:
+      autoheal: true
     ports:
       - 80
     env_file:
@@ -12,6 +14,12 @@ services:
       - /opt/docker/_env/ttrss.env
     volumes:
       - /opt/docker/volumes/tt-rss:/config
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "update_daemon2.php"]
+      start_period: 1m
+      interval: 5m
+      timeout: 10s
+      retries: 3
 
   wallabag:
     image: wallabag/wallabag:2.3.2
@@ -87,3 +95,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
       syslog://$COMMON_SYSLOG_DESTINATION
+
+  autoheal:
+    image: willfarrell/autoheal
+    container_name: autoheal
+    hostname: autoheal
+    restart: always
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
