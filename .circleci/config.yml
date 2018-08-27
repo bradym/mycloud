@@ -5,5 +5,8 @@ jobs:
       - image: alpine:3.5
     steps:
       - run:
+          name: Install SSH
+          command: apk update && apk add openssh-client
+      - run:
           name: Deploy Over SSH
           command: ssh $SSH_USER@$SSH_HOST /opt/docker/deploy.sh
