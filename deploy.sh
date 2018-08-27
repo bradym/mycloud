@@ -22,9 +22,6 @@ DIR=/opt/docker
 
 cd "$DIR"
 
-# Get the latest changes from github
-git pull
-
 # Get parameters from AWS SSM Parameter Store and set variabes based on their names.
 aws ssm get-parameters-by-path --path / --with-decryption --recursive | jq -r '.Parameters[] | [.Name,.Value] | @tsv' |
     while IFS=$'\t' read -r PARAM VALUE; do
