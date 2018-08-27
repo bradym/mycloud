@@ -8,5 +8,8 @@ jobs:
           name: Install SSH
           command: apk update && apk add openssh-client
       - run:
+          name: Populate known_hosts
+          command: ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+      - run:
           name: Deploy Over SSH
           command: ssh $SSH_USER@$SSH_HOST /opt/docker/deploy.sh
