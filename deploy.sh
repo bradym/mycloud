@@ -17,15 +17,20 @@ function cleanup_before_exit () {
 
 trap cleanup_before_exit EXIT
 
+# Base directory on the server for docker containers
+DIR=/opt/docker
+
+cd "$DIR"
+
+# Get the latest changes from github
+git pull
+
 # Get parameters from AWS SSM Parameter Store and set variabes based on their names.
 aws ssm get-parameters-by-path --path / --with-decryption --recursive | jq -r '.Parameters[] | [.Name,.Value] | @tsv' |
     while IFS=$'\t' read -r PARAM VALUE; do
         NAME=$(echo "$PARAM" | sed 's/^.\{1\}//' | sed 's#/#_#')
         echo "export $NAME='$VALUE'" >> "$ENV_FILE"
     done
-
-# Where is this script running?
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Make the output folder if it doesn't exost
 mkdir -p "$DIR/_env"
@@ -42,4 +47,4 @@ done
 envsubst < _templates/docker-compose.tmpl.yaml > "$DIR/docker-compose.yaml"
 
 # Deploy all the things!
-docker-compose up -d --force-recreate
+docker-compose up --detach --remove-orphans

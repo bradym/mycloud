@@ -1,5 +1,25 @@
 version: '3.4'
 services:
+  # File management tool
+  filerun:
+    image: afian/filerun
+    container_name: filerun
+    hostname: filerun
+    restart: always
+    env_file:
+      - /opt/docker/_env/common.env
+      - /opt/docker/_env/filerun.env
+    depends_on:
+      - mariadb
+    links:
+      - mariadb
+    ports:
+      - 80
+    volumes:
+      - /opt/docker/filerun/html:/var/www/html
+      - /opt/docker/filerun/user-files:/user-files
+
+  # RSS feed reader
   tt-rss:
     image: linuxserver/tt-rss:132
     container_name: tt-rss
@@ -21,6 +41,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # Bookmark / read it later app
   wallabag:
     image: wallabag/wallabag:2.3.2
     container_name: wallabag
@@ -30,7 +51,7 @@ services:
       - /opt/docker/_env/common.env
       - /opt/docker/_env/wallabag.env
     ports:
-      - "80"
+      - 80
     volumes:
       - /opt/docker/volumes/wallabag/images:/var/www/wallabag/web/assets/images
       - /opt/docker/volumes/nginx/conf.d:/etc/nginx/conf.d
@@ -39,21 +60,49 @@ services:
       - /opt/docker/volumes/nginx/certs:/etc/nginx/certs:ro
       - /opt/docker/volumes/nginx/htpasswd:/etc/nginx/htpasswd:ro
 
-  nginx-web:
-    image: nginx
-    container_name: nginx-web
-    hostname: nginx-web
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /opt/docker/volumes/nginx/conf.d:/etc/nginx/conf.d
-      - /opt/docker/volumes/nginx/vhost.d:/etc/nginx/vhost.d
-      - /opt/docker/volumes/nginx/html:/usr/share/nginx/html
-      - /opt/docker/volumes/nginx/certs:/etc/nginx/certs:ro
-      - /opt/docker/volumes/nginx/htpasswd:/etc/nginx/htpasswd:ro
+# ------------------------------------------------------
+# Infra / background containers
+# ------------------------------------------------------
 
+  # Restart failed containers based on their healthcheck
+  autoheal:
+    image: willfarrell/autoheal
+    container_name: autoheal
+    hostname: autoheal
+    restart: always
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Send container logs to papertrail
+  logspout:
+    image: gliderlabs/logspout:latest
+    container_name: logspout
+    hostname: logspout
+    restart: always
+    environment:
+      BACKLOG: "false"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      syslog://$COMMON_SYSLOG_DESTINATION
+
+  # MariaDB Container
+  mariadb:
+    image: mariadb:10.3
+    container_name: mariadb
+    hostname: mariadb
+    restart: always
+    env_file:
+      - /opt/docker/_env/common.env
+      - /opt/docker/_env/mariadb.env
+    ports:
+      - 3306
+    volumes:
+      - /opt/docker/filerun/db:/var/lib/mysql
+
+  # Generate nginx config files from docker container meta-data
   nginx-gen:
     image: jwilder/docker-gen
     command: -notify-sighup nginx-web -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
@@ -69,6 +118,7 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - /opt/docker/volumes/nginx/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl
 
+  # Manange SSL certificates for all containers
   nginx-letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
     container_name: nginx-letsencrypt
@@ -84,24 +134,18 @@ services:
       NGINX_DOCKER_GEN_CONTAINER: nginx-gen
       NGINX_PROXY_CONTAINER: nginx-web
 
-  logspout:
-    image: gliderlabs/logspout:latest
-    container_name: logspout
-    hostname: logspout
+  # Nginx proxy to serve all apps
+  nginx-web:
+    image: nginx
+    container_name: nginx-web
+    hostname: nginx-web
     restart: always
-    environment:
-      BACKLOG: "false"
+    ports:
+      - 80:80
+      - 443:443
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command:
-      syslog://$COMMON_SYSLOG_DESTINATION
-
-  autoheal:
-    image: willfarrell/autoheal
-    container_name: autoheal
-    hostname: autoheal
-    restart: always
-    environment:
-      AUTOHEAL_CONTAINER_LABEL: autoheal
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/docker/volumes/nginx/conf.d:/etc/nginx/conf.d
+      - /opt/docker/volumes/nginx/vhost.d:/etc/nginx/vhost.d
+      - /opt/docker/volumes/nginx/html:/usr/share/nginx/html
+      - /opt/docker/volumes/nginx/certs:/etc/nginx/certs:ro
+      - /opt/docker/volumes/nginx/htpasswd:/etc/nginx/htpasswd:ro

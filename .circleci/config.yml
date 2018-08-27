@@ -1,0 +1,9 @@
+version: 2
+jobs:
+  deploy:
+    docker:
+      image: alpine:3.5
+    steps:
+      - run:
+          name: Deploy Over SSH
+          command: ssh $SSH_USER@$SSH_HOST /opt/docker/deploy.sh
