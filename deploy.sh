@@ -35,6 +35,7 @@ aws ssm get-parameters-by-path --path / --with-decryption --recursive | jq -r '.
 # Make the output folder if it doesn't exost
 mkdir -p "$DIR/_env"
 
+# shellcheck disable=SC1090
 source "$ENV_FILE"
 
 # Render all of the environment variable templates

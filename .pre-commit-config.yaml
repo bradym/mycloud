@@ -1,0 +1,27 @@
+- repo: http://github.com/bradym/pre-commit-circleci
+  rev: 521c001a81e06ea6c9a241534164b298a9296b5b
+  hooks:
+    - id: circleci-validate
+
+- repo: git://github.com/detailyang/pre-commit-shell
+  rev: 1.0.2
+  hooks:
+    - id: shell-lint
+
+- repo: git://github.com/pre-commit/pre-commit-hooks
+  rev: v1.2.3
+  hooks:
+    - id: check-added-large-files
+    - id: check-byte-order-marker
+    - id: check-case-conflict
+    - id: check-executables-have-shebangs
+    - id: check-json
+    - id: check-merge-conflict
+    - id: check-symlinks
+    - id: check-yaml
+    - id: detect-aws-credentials
+      args: [--allow-missing-credentials]
+    - id: detect-private-key
+    - id: mixed-line-ending
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
