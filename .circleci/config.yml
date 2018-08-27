@@ -7,9 +7,13 @@ jobs:
       - run:
           name: Install SSH
           command: apk update && apk add openssh-client
+      - add_ssh_keys
+      - run:
+          name: Create .ssh folder
+          command: mkdir -p /root/.ssh/
       - run:
           name: Populate known_hosts
-          command: mkdir -p /root/.ssh/ && ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+          command: ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts 2> /dev/null
       - run:
           name: Deploy Over SSH
           command: ssh $SSH_USER@$SSH_HOST /opt/docker/deploy.sh
