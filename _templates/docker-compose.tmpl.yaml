@@ -16,8 +16,8 @@ services:
     ports:
       - 80
     volumes:
-      - /opt/docker/filerun/html:/var/www/html
-      - /opt/docker/filerun/user-files:/user-files
+      - /opt/docker/volumes/filerun/html:/var/www/html
+      - /opt/docker/volumes/filerun/user-files:/user-files
 
   # RSS feed reader
   tt-rss:
@@ -98,9 +98,9 @@ services:
       - /opt/docker/_env/common.env
       - /opt/docker/_env/mariadb.env
     ports:
-      - 3306
+      - 3306:3306
     volumes:
-      - /opt/docker/filerun/db:/var/lib/mysql
+      - /opt/docker/volumes/mariadb:/var/lib/mysql
 
   # Generate nginx config files from docker container meta-data
   nginx-gen:
