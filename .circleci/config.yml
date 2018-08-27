@@ -16,7 +16,7 @@ jobs:
           command: ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts 2> /dev/null
       - run:
           name: Get latest code from github
-          command: ssh $SSH_USER@SSH_HOST git -C /opt/docker pull
+          command: ssh $SSH_USER@$SSH_HOST git -C /opt/docker pull
       - run:
           name: Deploy
           command: ssh $SSH_USER@$SSH_HOST /opt/docker/deploy.sh
