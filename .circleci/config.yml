@@ -19,4 +19,4 @@ jobs:
           command: ssh $SSH_USER@$SSH_HOST git -C /opt/docker pull
       - run:
           name: Deploy
-          command: ssh $SSH_USER@$SSH_HOST /opt/docker/deploy.sh
+          command: ssh $SSH_USER@$SSH_HOST sudo /opt/docker/deploy.sh
