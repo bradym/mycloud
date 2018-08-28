@@ -19,6 +19,17 @@ services:
       - /opt/docker/volumes/filerun/html:/var/www/html
       - /opt/docker/volumes/filerun/user-files:/user-files
 
+  rss-bridge:
+    image: rssbridge/rss-bridge:latest
+    container_name: rss-bridge
+    hostname: rss-bridge
+    restart: always
+    env_file:
+      - /opt/docker/_env/common.env
+      - /opt/docker/_env/rss-bridge.env
+    ports:
+      - 80
+
   # RSS feed reader
   tt-rss:
     image: linuxserver/tt-rss:132
